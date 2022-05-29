@@ -1,0 +1,22 @@
+#第一步：载入第三方库
+import pandas as pd
+import matplotlib.pyplot as plt
+import searborn as sns
+
+#第二步：读取数据集，并对数据集大概情况做出分析
+data = pd.read_csv("Salary_Data.csv")
+data.head(5)
+data.info()
+data.describe()
+data.isnull.sum()
+
+#第三步：使用seabron做线性相关性图
+sns.lmplot(x='YearsExperience',y='Profit',data=data,ci=None)
+plt.show()
+
+#第四步：载入statsmodels库
+import statsmodels.api as sm
+
+#第五步：建模得到模型与参数
+model = sm.formula.ols('Profit~YearsExperience').fit()
+model_params = model.params
