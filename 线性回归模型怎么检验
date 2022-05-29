@@ -1,0 +1,117 @@
+#检验一：t检验和F检验
+import numpy as np
+ybar = train.Profit.mean()
+p = model2.df_model
+n = train.shape[0]
+SSR = np.sum((model2.fittedvalues - ybar)**2)
+SSE = np.sum(model2.resid ** 2)
+MSR = SSR/p
+MSE = SSE/(n-p-1)
+F = MSR/MSE
+print(F)
+
+#得到F分布理论值方法
+from scipy.stats import f
+F_Theory = f.ppf(q=0.95,dfn = p,dfd=n-p-1)
+
+#简单方法
+model.fvalue
+
+#检验二：正态性检验
+import scipy.stats as stats
+plt.rcParams['font.sans-serif'] = ['Microsoft YaHei']
+plt.rcParams['axes.unicode_minus] = False
+sns.distplot(a = Profit_new.Profit,bins = 10,fit = stats.norm,
+             norm_hist = True,hist_kws = {'color':'steelblue','edgecolor':'black'},
+             kde_kws = {'color':'black','linestyle':'--','label':'核密度曲线'},
+             fit_kws = {'color':'red','linestyle':':','label':'正态密度曲线'})
+ plt.legend()
+ plt.show()
+ 
+ 
+ #检验三：Shapiro检验和K-S检验
+ if n < 5000:
+    Shapiro
+ else:
+    K-S
+ 
+import scipy.stats as stats
+stats.shapiro(Profit_New.Profit)
+rnorm = np.random.normal(loc = 5, scale = 2, size = 10000)
+runif = np.random.uniform(low = 1, high = 100, size = 10000)
+
+KS_Test1 = stats.kstest(rvs = rnorm , args = (rnorm.mean(),rnorm.std()),cdf = 'norm')#args用于传递被检验变量的均值和标准差
+KS_Test2 = stats.kstest(rvs = runif , args = (runif.mean(),runif.std()),cdf = 'norm')
+print(KS_Test1)
+print(KS_Test2)
+
+#检验四：多重共线性检验
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+X = sm.add_constant(Profit_New.loc[:,['RD_Spend','Marketing_Spend']])
+vif = pd.DataFrame()
+vif['features'] = X.columns
+vif['VIF Factor'] = [variance_inflation_factor(X.values,i) for i in range(X.shape[1])]
+vif
+
+#检验五：线性相关性检验
+Profit_New.drop('Profit',axis=1).corrwith(Profit_New.Profit)
+import matplotlib.pyplot as plt
+import seaborn
+
+seaborn.pairplot(Profit_New.loc[:,['RD_Spend','Administration','Marketing_Spend','Profit']])
+plt.show()
+
+#检验六：异常值检验
+outliers = model3.get_influence()
+leverage = outliers.hat_matrix_diag
+dffits = outliers.dffits[0]
+resid_stu = outliers.resid_studentized_external
+cook = outliers.cooks_distance[0]
+contat1 = pd.concat([pd.Series(leverage,name = 'leverage'),
+                     pd.Series(dffits,name = 'dffits'),
+                    pd.Series(resid_stu,name = 'resid_stu'),
+                    pd.Series(cook,name = 'cook')],axis = 1)
+                    
+train.index = range(train.shape[0])
+profit_outliers = pd.concat([train,contat1],axis=1)
+profit_outliers.head()
+outliers_ratio = sum(np.where((np.abs(profit_outliers.resid_stu)>2),1,0))/profit_outliers.shape[0]
+outliers_ratio
+
+none_outliers = profit_outliers.loc[np.abs(profit_outliers.resid_stu)<=2,:]
+model4 = sm.formula.ols('Profit~RD_Spend + Marketing_Spend',data = none_outliers).fit()
+model4.params
+
+
+#检验七：方差齐性检验
+ax1 = plt.subplot2grid(shape = (2,1),loc = (0,0))
+
+ax1.scatter(none_outliers.RD_Spend,(model4.resid-model4.resid.mean())/model4.resid.std())
+
+ax1.hlines(y=0,
+           xmin = none_outliers.RD_Spend.min(),
+           xmax = none_outliers.RD_Spend.max(),
+           color = 'red',
+           linestyles = '--')
+ax1.set_xlabel('RD_Spend')
+ax1.set_ylabel('Std_Residual')
+
+
+ax2 = plt.subplot2grid(shape = (2,1),loc = (1,0))
+
+ax2.scatter(none_outliers.Marketing_Spend,(model4.resid-model4.resid.mean())/model4.resid.std())
+ax2.hlines(y=0,
+           xmin = none_outliers.Marketing_Spend.min(),
+           xmax = none_outliers.Marketing_Spend.max(),
+           color = 'red',
+           linestyles = '--'
+            )
+ax2.set_xlabel('Marketing_Spend')
+ax2.set_ylabel('Std_Residual')
+
+plt.subplots_adjust(hspace = 0.6,wspace=0.3)
+plt.show()
+
+
+#检验八：BP检验
+sm.stats.diagnostic.het_breuschpagan(model4.resid, exog_het = model4.model.exog)
