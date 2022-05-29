@@ -20,3 +20,6 @@ import statsmodels.api as sm
 #第五步：建模得到模型与参数
 model = sm.formula.ols('Profit~YearsExperience').fit()
 model_params = model.params
+
+#第六步：看建模拟合结果
+model.summary()
