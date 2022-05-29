@@ -1,0 +1,34 @@
+#第一步：导入第三方库
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import statsmodels as sm
+from sklearn import model_selection
+
+#第二步：读取数据集，并对数据集情况进行简单查看
+data = pd.read_excel('Predict to Profit.xlsx')
+data.head(5)
+data.info()
+data.describe()
+data.isnull().sum()
+
+#第三步：看数据集是否存在object类型数据，需要设置哑变量，并组建新的数据集
+dummies = pd.get_dummies(data.State)
+data_new = pd.concat([data,dummies],axis=1)
+data_new.drop(columns = ['state','New York'],axis=1,inplace=True)   #这边以New York作为对照组
+
+#第四步：拆分数据集为训练集和测试集
+train,test = model_selection.train_test_split(data_new,test_size=0.2,random_state=1234)
+
+#第五步：建模得到模型和参数
+model2 = sm.formula.ols('Profit~RD_Spend+Administration+Marketing_Spend+California+Florida',data=train).fit()
+model2_params = model2.params
+
+#第六步：看模型训练预测值和真实值的差距
+test_X = test.drop(columns = ['Profit'],axis=1)
+pred = model2.predict(test_X)
+Df = pd.DataFrame({'pred':pred,'real':test.Profit})
+print(Df)
+
+#第七步：看模型拟合结果
+model2.summary()
